@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: url-shortener-backend
+    ports:
+      - '5000:5000'
+    env_file:
+      - .env
+    environment: 
+      - NODE_ENV=development 
+      - CHOKIDAR_USEPOLLING=true  
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # mongo:
+  #   image: mongo:6
+  #   container_name: mongo
+  #   ports:
+  #     - '27017:27017'
+
+  # redis:
+  #   image: redis:7
+  #   container_name: redis
+  #   ports:
+  #     - '6379:6379'
