@@ -1,5 +1,4 @@
-export interface ResetDTO {
-  email: string;
-  otp: string;
+export interface ResetWithTokenDTO {
+  token: string;
   newPassword: string;
 }

@@ -11,5 +11,6 @@ authRoutes.post('/login', authController.login);
 authRoutes.post('/refresh', authController.refreshToken);
 authRoutes.post('/forgot-password', authController.forgotPassword);
 authRoutes.post('/reset-password', authController.resetPassword);
+authRoutes.post('/google', authController.googleLogin);
 authRoutes.post('/logout', authenticate, authController.logout);
   

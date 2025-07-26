@@ -8,6 +8,13 @@ export interface AuthPayload {
   exp?: number;
 }
 
+export interface JwtDecodedPayload {
+  sub: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
 export interface AuthenticatedRequest extends Request {
   user?: AuthPayload;
 }

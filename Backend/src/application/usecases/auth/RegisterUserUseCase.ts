@@ -13,7 +13,13 @@ export class RegisterUserUseCase {
 
   async execute(dto: RegisterDTO): Promise<{ message: string }> {
     const existing = await this.userRepo.findByEmail(dto.email);
-    if (existing) throw new Error(Messages.EMAIL_ALREADY_EXISTS);
+     if (existing) {
+      if (!existing.isVerified) {
+        await this.otpEmailSender.sendOtp(existing.email, 'verify');
+        return { message: Messages.NOT_VERIFIED_OTP_RESENT };
+      }
+      throw new Error(Messages.EMAIL_ALREADY_EXISTS);
+    }
 
     const passwordHash = await this.hasher.hash(dto.password);
     const user = await this.userRepo.create({

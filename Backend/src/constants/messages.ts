@@ -18,7 +18,11 @@ export enum Messages {
 
   OTP_RESENT = 'OTP Resent Successfully',
   EMAIL_NOT_VARIFIED = 'Email not verified',
+  NOT_VERIFIED_OTP_RESENT ='Account already exists but is not verified. We re-sent the OTP.',
   INCORRECT_PASSWORD = "Incorrect password",
   OTP_SENT_IF_EMAIL_EXISTS = "If the email exists, an OTP has been sent.",
   PASSWORD_UPDATED = "Password updated successfully",
+  MISSING_REFRESH_TOKEN = "Refresh token missing",
+
+  INVALID_OR_EXPIRED_TOKEN= "This reset link is invalid or has expired.",
 }

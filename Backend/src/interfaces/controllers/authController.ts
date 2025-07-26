@@ -11,10 +11,11 @@ import { ResetPasswordUseCase } from "../../application/usecases/auth/ResetPassw
 import { VerifyDTO } from "../../application/dtos/auth/VerifyDTO";
 import { ResendDTO } from "../../application/dtos/auth/ResendDTO";
 import { ForgotDTO } from "../../application/dtos/auth/ForgotDTO";
-import { ResetDTO } from "../../application/dtos/auth/ResetDTO";
+import { ResetWithTokenDTO } from "../../application/dtos/auth/ResetDTO";
 import { AuthenticatedRequest } from "../../types/express";
 import { HttpStatusCode } from "../../constants/statusCode";
 import { Messages } from "../../constants/messages";
+import { GoogleLoginUseCase } from "../../application/usecases/auth/GoogleLoginUseCase";
 
 export class AuthController {
   constructor(
@@ -25,7 +26,8 @@ export class AuthController {
     private resendOtpUseCase: ResendOtpUseCase,
     private verifyOtpUseCase: VerifyOtpUseCase,
     private forgotPasswordUseCase: ForgotPasswordUseCase,
-    private resetPasswordUseCase: ResetPasswordUseCase
+    private resetPasswordUseCase: ResetPasswordUseCase,
+    private googleLoginUseCase: GoogleLoginUseCase,
   ) {}
 
   public register = async (req: Request, res: Response, next: NextFunction) => {
@@ -64,25 +66,49 @@ export class AuthController {
   };
 
   public refreshToken = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: Messages.MISSING_REFRESH_TOKEN });
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } =
+      await this.refreshTokenUseCase.execute(refreshToken);
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
+    });
+
+    res.status(200).json({
+      accessToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+  public googleLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const refreshToken = req.cookies?.refreshToken;
-      if (!refreshToken) throw new Error("Refresh token missing");
+      const { code } = req.body;
+      console.log('this is the code get in bacnded :',code)
+      const { user, accessToken, refreshToken } = await this.googleLoginUseCase.execute(code);
 
-      const { accessToken, refreshToken: newRefreshToken } =
-        await this.refreshTokenUseCase.execute(refreshToken);
-
-      res.cookie("refreshToken", newRefreshToken, {
+      res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
-      res.status(HttpStatusCode.OK).json({ message: Messages.REFRESH_SUCCESS, accessToken });
+      res.status(HttpStatusCode.OK).json({ accessToken, user });
     } catch (error) {
       next(error);
     }
@@ -162,15 +188,14 @@ export class AuthController {
     }
   };
 
-  public resetPassword = async (
+  public resetPassword = async ( 
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const dto: ResetDTO = {
-        email: req.body.email,
-        otp: req.body.otp,
+      const dto: ResetWithTokenDTO = {
+        token: req.body.token,
         newPassword: req.body.newPassword,
       };
       const result = await this.resetPasswordUseCase.execute(dto);

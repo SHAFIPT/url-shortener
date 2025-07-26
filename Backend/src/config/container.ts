@@ -1,4 +1,5 @@
 import { ForgotPasswordUseCase } from "../application/usecases/auth/ForgotPasswordUseCase";
+import { GoogleLoginUseCase } from "../application/usecases/auth/GoogleLoginUseCase";
 import { LoginUserUseCase } from "../application/usecases/auth/LoginUserUseCase";
 import { LogoutUseCase } from "../application/usecases/auth/LogoutUseCase";
 import { RefreshTokenUseCase } from "../application/usecases/auth/RefreshTokenUseCase";
@@ -8,8 +9,10 @@ import { ResetPasswordUseCase } from "../application/usecases/auth/ResetPassword
 import { VerifyOtpUseCase } from "../application/usecases/auth/VerifyOtpUseCase";
 import { UserRepository } from "../infrastructure/db/repositories/UserRepository";
 import { RedisOtpService } from "../infrastructure/redis/OtpService";
+import { RedisTokenStore } from "../infrastructure/redis/RedisTokenStore";
 import { BcryptPasswordHasher } from "../infrastructure/services/BcryptPasswordHasher";
 import { JwtService } from "../infrastructure/services/JwtService";
+import { NodemailerMailerService } from "../infrastructure/services/MailerService";
 import { NodemailerEmailService } from "../infrastructure/services/NodemailerEmailService";
 import { OtpEmailSender } from "../infrastructure/services/OtpEmailSender";
 import { AuthController } from "../interfaces/controllers/authController";
@@ -19,8 +22,10 @@ const userRepo = new UserRepository();
 const hasher = new BcryptPasswordHasher();
 const jwt = new JwtService();
 const otpService = new RedisOtpService();
-const mailer = new NodemailerEmailService();
-const otpEmailSender = new OtpEmailSender(otpService, mailer);
+const tokenService = new RedisTokenStore();
+const otpMailer = new NodemailerEmailService();
+const tokenMailer = new NodemailerMailerService(); 
+const otpEmailSender = new OtpEmailSender(otpService, otpMailer);
 
 const registerUserUseCase = new RegisterUserUseCase(userRepo, hasher, otpEmailSender);
 const loginUserUseCase = new LoginUserUseCase(userRepo, hasher, jwt);
@@ -28,8 +33,9 @@ const refreshTokenUseCase = new RefreshTokenUseCase(jwt, userRepo);
 const logoutUseCase = new LogoutUseCase(userRepo);
 const resendOtpUseCase = new ResendOtpUseCase(userRepo, otpEmailSender);
 const verifyOtpUseCase = new VerifyOtpUseCase(userRepo, otpService);
-const forgotPasswordUseCase = new ForgotPasswordUseCase(userRepo, otpEmailSender);
-const resetPasswordUseCase = new ResetPasswordUseCase(userRepo, otpService, hasher);
+const forgotPasswordUseCase = new ForgotPasswordUseCase(userRepo, jwt, tokenMailer ,tokenService);
+const resetPasswordUseCase = new ResetPasswordUseCase(userRepo, jwt, hasher, tokenService);
+const googleLoginUseCase = new GoogleLoginUseCase(userRepo ,jwt);
 
 // Instantiate controller
 export const authController = new AuthController(
@@ -40,5 +46,6 @@ export const authController = new AuthController(
   resendOtpUseCase,
   verifyOtpUseCase,
   forgotPasswordUseCase,
-  resetPasswordUseCase
+  resetPasswordUseCase,
+  googleLoginUseCase
 );

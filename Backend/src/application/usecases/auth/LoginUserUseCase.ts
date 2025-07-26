@@ -13,7 +13,7 @@ export class LoginUserUseCase {
   async execute(dto: LoginDTO): Promise<{
     accessToken: string;
     refreshToken: string;
-    user: { name: string; email: string };
+    user: {id: string, name: string; email: string };
   }> {
     const user = await this.userRepo.findByEmail(dto.email);
     if (!user) throw new Error(Messages.USER_NOT_FOUND);
@@ -32,7 +32,7 @@ export class LoginUserUseCase {
     return {
       accessToken,
       refreshToken,
-      user: { name: user.name, email: user.email },
+      user: { id : user.id , name: user.name, email: user.email },
     };
   }
 }

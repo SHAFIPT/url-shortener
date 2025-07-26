@@ -1,12 +1,23 @@
-import { Button } from "@/components/ui/button";
+// App.tsx
+import { BrowserRouter } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import AppRoutes from './routes/routes';
 
-function App() {
+export default function App() {
   return (
-    <div className="p-6 space-y-4 text-center">
-      <h1 className="text-3xl font-bold text-blue-500">Tailwind is working!</h1>
-      <Button variant="default">Shadcn Button</Button>
-    </div>
-  )
+    <BrowserRouter>
+      <AppRoutes />
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          className: '',
+          style: {
+            border: '1px solid #3b82f6',
+            padding: '12px',
+            color: '#333',
+          },
+        }}
+      />
+    </BrowserRouter>
+  );
 }
-
-export default App;

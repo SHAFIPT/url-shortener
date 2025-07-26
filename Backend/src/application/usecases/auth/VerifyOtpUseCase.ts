@@ -9,7 +9,7 @@ export class VerifyOtpUseCase {
         private readonly userRepo: IUserRepository,
         private readonly otpService: IOtpService,
     ) { }
-    
+     
     async execute(dto: VerifyDTO) {
         const user = await this.userRepo.findByEmail(dto.email)
         if (!user) throw new Error(Messages.USER_NOT_FOUND)
