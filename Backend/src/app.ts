@@ -14,7 +14,7 @@ import { publicRedirectRoutes } from './interfaces/routes/publicRedirectRoutes';
 const app = express();
 app.use(helmet());
 app.use(cors({ 
-  origin: "http://localhost:5173",
+  origin: ["https://url-shortener-orcin-eight.vercel.app","http://localhost:5173"],
   credentials: true,
 }));
 app.use(cookieParser());
