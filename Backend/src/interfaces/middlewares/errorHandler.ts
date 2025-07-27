@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-export function errorHandler(
+export function authErrorHandler(
   err: any,
   req: Request,
   res: Response,

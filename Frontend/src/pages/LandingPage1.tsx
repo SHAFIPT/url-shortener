@@ -21,20 +21,31 @@ import {
   ArrowRight,
   Sparkles,
   TrendingUp,
+  Copy,
+  Check,
+  ExternalLink,
+  LayoutDashboard,
+  LogOut,
+  ChevronDown,
+  QrCode,
+  Share2,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { savePendingUrl } from "@/utils/pendingUrl";
+import { useShortenUrl } from "@/hooks/url/useShortenUrl";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
-import toast from "react-hot-toast";
 import { useLogout } from "@/hooks/auth/useLogout";
-import { useShortenUrl } from "@/hooks/url/useShortenUrl";
-import { savePendingUrl } from "@/utils/pendingUrl";
 import type { AxiosError } from "axios";
 import type { ApiError } from "@/types/auth";
 
 const LandingPage = () => {
   const [url, setUrl] = useState("");
-  const logoutMutation = useLogout();
-  const navigate = useNavigate()
+  const [shortenedUrl, setShortenedUrl] = useState("");
+  const [showResult, setShowResult] = useState(false);
+  const [copied, setCopied] = useState(false);
+     const navigate = useNavigate();
+    const logoutMutation = useLogout();
   const { isAuthenticated, user } = useSelector(
     (state: RootState) => state.user
   );
@@ -55,9 +66,9 @@ const LandingPage = () => {
       { longUrl: url },
       {
         onSuccess: (data) => {
-          toast.success('Short URL created successfully!');
-          console.log("Navigating to dashboard with id:", data.id);
-          navigate('/dashboard', { state: { justCreatedId: data.id } });
+        toast.success('Short URL created successfully!');
+        setShortenedUrl(data.shortUrl); 
+        setShowResult(true);            
         },
         onError: (err: AxiosError<ApiError>) => {
           const message =
@@ -82,6 +93,27 @@ const LandingPage = () => {
     };
     
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shortenedUrl);
+      setCopied(true);
+      toast.success("Shortened URL copied to clipboard.");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error(err)
+      toast.success("Please copy the URL manually.");
+    }
+  };
+
+  const handleReset = () => {
+    setUrl("");
+    setShortenedUrl("");
+    setShowResult(false);
+    setCopied(false);
+  };
+
+
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Animated background */}
@@ -90,23 +122,23 @@ const LandingPage = () => {
       <div className="gradient-orb gradient-orb-2"></div>
       <div className="gradient-orb gradient-orb-3"></div>
 
- {/* Navigation */}
-      <nav className="relative z-10 bg-black/20 backdrop-blur-xl border-b border-white/10 shadow-2xl">
+      {/* Navigation */}
+      <nav className="relative z-10 glass border-b border-white/10 shadow-premium">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Brand */}
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 rounded-xl blur opacity-75"></div>
-                <div className="relative p-3 rounded-xl bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 shadow-xl">
+                <div className="absolute inset-0 bg-gradient-primary rounded-xl blur opacity-75"></div>
+                <div className="relative p-3 rounded-xl bg-gradient-primary shadow-premium">
                   <LinkIcon className="h-7 w-7 text-white" />
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-3xl font-black bg-gradient-to-r from-white via-purple-200 to-indigo-200 bg-clip-text text-transparent tracking-tight">
-                  LinkGuard
+                <span className="text-3xl font-black text-shimmer tracking-tight">
+                  LinkSpark Pro
                 </span>
-                <span className="text-xs text-purple-300/80 font-medium tracking-widest uppercase">
+                <span className="text-xs text-accent/80 font-medium tracking-widest uppercase">
                   Premium Security
                 </span>
               </div>
@@ -119,21 +151,21 @@ const LandingPage = () => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-white/90 hover:text-white hover:bg-white/5 font-semibold tracking-wide"
+                  className="text-foreground/90 hover:text-foreground hover:bg-accent/10 font-semibold tracking-wide"
                 >
                   Features
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-white/90 hover:text-white hover:bg-white/5 font-semibold tracking-wide"
+                  className="text-foreground/90 hover:text-foreground hover:bg-accent/10 font-semibold tracking-wide"
                 >
                   Pricing
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-white/90 hover:text-white hover:bg-white/5 font-semibold tracking-wide"
+                  className="text-foreground/90 hover:text-foreground hover:bg-accent/10 font-semibold tracking-wide"
                 >
                   About
                 </Button>
@@ -146,7 +178,7 @@ const LandingPage = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 font-semibold px-6"
+                      className="border-2 border-border hover:bg-accent/10 hover:border-accent font-semibold px-6"
                     >
                       Sign In
                     </Button>
@@ -155,29 +187,49 @@ const LandingPage = () => {
                     <Button
                       variant="premium"
                       size="sm"
-                      className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold px-8 py-2.5 shadow-2xl hover:shadow-purple-500/25"
+                      className="px-8 py-2.5"
                     >
                       Get Started Free
                     </Button>
                   </Link>
                 </div>
               ) : (
-                <div className="flex items-center space-x-4">
-                  <Link to="/dashboard">
-                    <div className="flex items-center space-x-2 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-lg transition-all duration-200">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-md">
+                <div className="flex items-center space-x-3">
+                  {/* User Profile Dropdown */}
+                  <div className="flex items-center space-x-2 glass px-3 py-2 rounded-lg hover:bg-accent/10 transition-all duration-200 cursor-pointer">
+                    <div className="relative">
+                      <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                         {user?.name?.charAt(0).toUpperCase() || "U"}
                       </div>
-                      <span className="font-medium text-white/90 text-sm">{user?.name || "User"}</span>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
                     </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm text-foreground">{user?.name || "User"}</span>
+                      <span className="text-xs text-muted-foreground">Pro Plan</span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  </div>
+
+                  {/* Quick Actions */}
+                  <Link to="/dashboard">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center space-x-2 border-primary/30 hover:bg-primary/30 hover:border-primary/50"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span className="hidden sm:inline">Dashboard</span>
+                    </Button>
                   </Link>
+
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={handleLogout}
-                    className="text-red-400 border-2 border-red-500/30 hover:bg-red-500/10 hover:border-red-500/50 font-semibold"
+                    className="text-red-400 border-red-500/30 hover:bg-red-500/40 hover:border-red-500/50"
                   >
-                    Logout
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-2">Logout</span>
                   </Button>
                 </div>
               )}
@@ -191,7 +243,7 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto">
           <Badge
             variant="secondary"
-            className="mb-6 px-4 py-2 text-sm font-medium animate-bounce-in"
+            className="mb-6 px-4 py-2 text-sm font-medium animate-bounce-in glass"
           >
             <Sparkles className="h-4 w-4 mr-2" />
             Advanced Rate Limiting & Analytics
@@ -209,53 +261,167 @@ const LandingPage = () => {
           </p>
 
           {/* URL Shortener Input */}
-          <Card className="glass max-w-2xl mx-auto mb-12 animate-scale-in">
-            <CardContent className="p-6">
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Enter your long URL here..."
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="h-14 text-lg bg-background/50 border-border/50 focus:border-primary"
-                  />
+          {!showResult ? (
+            <Card className="glass max-w-2xl mx-auto mb-12 animate-scale-in shadow-premium">
+              <CardContent className="p-6">
+                <div className="flex space-x-4">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Enter your long URL here..."
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      className="h-14 text-lg bg-background/50 border-border/50 focus:border-primary"
+                      onKeyDown={(e) => e.key === 'Enter' && handleShortenClick()}
+                    />
+                  </div>
+                  <Button
+                    variant="premium"
+                    size="lg"
+                    onClick={handleShortenClick}
+                    disabled={!url || isPaused}
+                    className={isPaused ? "pulse-glow" : ""}
+                  >
+                    {isPaused ? "Shortening..." : "Shorten URL"}
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </Button>
                 </div>
-                <Button
-                  variant="premium"
-                  size="lg"
-                  onClick={handleShortenClick}
-                  disabled={!url || isPaused}
-                  className={isPaused ? "pulse-glow" : ""}
-                >
-                  {isPaused ? "Shortening..." : "Shorten URL"}
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground mt-3 text-left">
-                <Shield className="h-4 w-4 inline mr-1" />
-                Free tier: 100 URLs per day. Enterprise plans available.
-              </p>
-            </CardContent>
-          </Card>
+                <p className="text-sm text-muted-foreground mt-3 text-left">
+                  <Shield className="h-4 w-4 inline mr-1" />
+                  Free tier: 100 URLs per day. Enterprise plans available.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            /* Result Display */
+            <Card className="glass max-w-3xl mx-auto mb-12 animate-scale-in shadow-premium glow-primary">
+              <CardHeader className="text-center pb-4">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="p-4 rounded-full bg-gradient-primary shadow-premium">
+                    <Check className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold text-shimmer">
+                  Your Link is Ready! 🎉
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Your URL has been successfully shortened and is ready to share
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                {/* Original URL */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-muted-foreground block mb-2">
+                    Original URL:
+                  </label>
+                  <div className="glass p-3 rounded-lg border border-border/30">
+                    <p className="text-sm text-foreground/80 truncate">{url}</p>
+                  </div>
+                </div>
+
+                {/* Shortened URL */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Shortened URL:
+                  </label>
+                  <div className="flex items-center space-x-3 glass p-4 rounded-lg border-2 border-primary/30">
+                    <div className="flex-1">
+                      <p className="text-lg font-semibold text-primary break-all">
+                        {shortenedUrl}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCopy}
+                        className="border-primary/20 hover:bg-primary/50"
+                      >
+                        {copied ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(shortenedUrl, '_blank')}
+                        className="border-primary/30 hover:bg-primary/50"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="premium"
+                    size="lg"
+                    onClick={handleCopy}
+                    className="flex-1"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-5 w-5 mr-2" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-5 w-5 mr-2" />
+                        Copy Link
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 border-primary/30 hover:bg-primary/50"
+                  >
+                    <QrCode className="h-5 w-5 mr-2" />
+                    QR Code
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 border-primary/30 hover:bg-primary/50"
+                  >
+                    <Share2 className="h-5 w-5 mr-2" />
+                    Share
+                  </Button>
+                </div>
+
+                {/* Create Another */}
+                <div className="mt-6 pt-6 border-t border-border/30">
+                  <Button
+                    variant="ghost"
+                    onClick={handleReset}
+                    className="w-full hover:bg-accent/50"
+                  >
+                    Create Another Short Link
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Feature Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto animate-fade-in">
-            <div className="text-center">
+            <div className="text-center glass p-4 rounded-lg">
               <div className="text-3xl font-bold text-primary mb-2">10K+</div>
               <div className="text-sm text-muted-foreground">Requests/min</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-secondary mb-2">
-                99.9%
-              </div>
+            <div className="text-center glass p-4 rounded-lg">
+              <div className="text-3xl font-bold text-accent mb-2">99.9%</div>
               <div className="text-sm text-muted-foreground">Uptime SLA</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-accent mb-2">30 Days</div>
+            <div className="text-center glass p-4 rounded-lg">
+              <div className="text-3xl font-bold text-warning mb-2">30 Days</div>
               <div className="text-sm text-muted-foreground">URL Lifespan</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-warning mb-2">100+</div>
+            <div className="text-center glass p-4 rounded-lg">
+              <div className="text-3xl font-bold text-success mb-2">100+</div>
               <div className="text-sm text-muted-foreground">Daily Limit</div>
             </div>
           </div>
@@ -278,7 +444,7 @@ const LandingPage = () => {
             <Card className="glass card-hover">
               <CardHeader>
                 <div className="p-3 rounded-lg bg-gradient-primary w-fit mb-4">
-                  <Zap className="h-6 w-6 text-primary-foreground" />
+                  <Zap className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle>Rate Limiting</CardTitle>
                 <CardDescription>
@@ -291,7 +457,7 @@ const LandingPage = () => {
             <Card className="glass card-hover">
               <CardHeader>
                 <div className="p-3 rounded-lg bg-gradient-secondary w-fit mb-4">
-                  <Shield className="h-6 w-6 text-secondary-foreground" />
+                  <Shield className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle>JWT Authentication</CardTitle>
                 <CardDescription>
@@ -304,7 +470,7 @@ const LandingPage = () => {
             <Card className="glass card-hover">
               <CardHeader>
                 <div className="p-3 rounded-lg bg-gradient-accent w-fit mb-4">
-                  <BarChart3 className="h-6 w-6 text-accent-foreground" />
+                  <BarChart3 className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle>Advanced Analytics</CardTitle>
                 <CardDescription>
@@ -317,7 +483,7 @@ const LandingPage = () => {
             <Card className="glass card-hover">
               <CardHeader>
                 <div className="p-3 rounded-lg bg-gradient-primary w-fit mb-4">
-                  <Clock className="h-6 w-6 text-primary-foreground" />
+                  <Clock className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle>Auto Expiry</CardTitle>
                 <CardDescription>
@@ -330,7 +496,7 @@ const LandingPage = () => {
             <Card className="glass card-hover">
               <CardHeader>
                 <div className="p-3 rounded-lg bg-gradient-secondary w-fit mb-4">
-                  <Globe className="h-6 w-6 text-secondary-foreground" />
+                  <Globe className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle>Global CDN</CardTitle>
                 <CardDescription>
@@ -343,7 +509,7 @@ const LandingPage = () => {
             <Card className="glass card-hover">
               <CardHeader>
                 <div className="p-3 rounded-lg bg-gradient-accent w-fit mb-4">
-                  <Users className="h-6 w-6 text-accent-foreground" />
+                  <Users className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle>Team Management</CardTitle>
                 <CardDescription>
@@ -359,13 +525,13 @@ const LandingPage = () => {
       {/* Call to Action */}
       <section className="relative z-10 px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <Card className="glass p-12">
+          <Card className="glass p-12 shadow-premium">
             <CardHeader>
               <CardTitle className="text-3xl mb-4">
                 Ready to Get Started?
               </CardTitle>
               <CardDescription className="text-lg mb-8">
-                Join thousands of developers and teams using LinkGuard for their
+                Join thousands of developers and teams using LinkSpark Pro for their
                 URL shortening needs.
               </CardDescription>
             </CardHeader>
@@ -375,7 +541,7 @@ const LandingPage = () => {
                   <TrendingUp className="h-5 w-5 mr-2" />
                   Start Free Trial
                 </Button>
-                <Button variant="outline" size="xl">
+                <Button variant="outline" size="xl" className="border-primary/30 hover:bg-primary/10">
                   View Documentation
                 </Button>
               </div>
@@ -389,14 +555,14 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-border/20 bg-card/20 backdrop-blur-sm">
+      <footer className="relative z-10 border-t border-border/20 glass">
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <div className="p-2 rounded-lg bg-gradient-primary">
-                <LinkIcon className="h-5 w-5 text-primary-foreground" />
+                <LinkIcon className="h-5 w-5 text-white" />
               </div>
-              <span className="text-lg font-semibold">LinkGuard</span>
+              <span className="text-lg font-semibold">LinkSpark Pro</span>
             </div>
             <div className="flex space-x-6 text-sm text-muted-foreground">
               <Link
@@ -426,7 +592,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-border/20 text-center text-sm text-muted-foreground">
-            © 2024 LinkGuard. Built with precision for modern applications.
+            © 2024 LinkSpark Pro. Built with precision for modern applications.
           </div>
         </div>
       </footer>
@@ -434,4 +600,4 @@ const LandingPage = () => {
   );
 };
 
-export default LandingPage
+export default LandingPage;

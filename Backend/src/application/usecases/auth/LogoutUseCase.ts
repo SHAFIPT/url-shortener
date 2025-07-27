@@ -7,4 +7,4 @@ export class LogoutUseCase {
     await this.userRepo.setRefreshToken(userId, null);
     return { message: Messages.LOGOUT_SUCCESS };
   }
-}
+}  

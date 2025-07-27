@@ -16,6 +16,7 @@ import { AuthenticatedRequest } from "../../types/express";
 import { HttpStatusCode } from "../../constants/statusCode";
 import { Messages } from "../../constants/messages";
 import { GoogleLoginUseCase } from "../../application/usecases/auth/GoogleLoginUseCase";
+import { IJwtService } from "../../domain/interfaces/IJwtService";
 
 export class AuthController {
   constructor(
@@ -28,6 +29,7 @@ export class AuthController {
     private forgotPasswordUseCase: ForgotPasswordUseCase,
     private resetPasswordUseCase: ResetPasswordUseCase,
     private googleLoginUseCase: GoogleLoginUseCase,
+    private readonly jwt: IJwtService
   ) {}
 
   public register = async (req: Request, res: Response, next: NextFunction) => {
@@ -38,11 +40,13 @@ export class AuthController {
         password: req.body.password,
       };
       const result = await this.registerUserUseCase.execute(dto);
-      res.status(HttpStatusCode.CREATED).json({ message: Messages.REGISTER_SUCCESS, result });
+      res
+        .status(HttpStatusCode.CREATED)
+        .json({ message: Messages.REGISTER_SUCCESS, result });
     } catch (error) {
       next(error);
     }
-  }; 
+  };
 
   public login = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -56,50 +60,58 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       res.status(HttpStatusCode.OK).json({
-          message: Messages.LOGIN_SUCCESS,
-          user,
-          accessToken
-        });
+        message: Messages.LOGIN_SUCCESS,
+        user,
+        accessToken,
+      });
     } catch (error) {
       next(error);
     }
   };
 
   public refreshToken = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const refreshToken = req.cookies?.refreshToken;
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      console.log("the refeshtokent is working................");
+      const refreshToken = req.cookies?.refreshToken;
 
-    if (!refreshToken) {
-      return res.status(401).json({ message: Messages.MISSING_REFRESH_TOKEN });
+      if (!refreshToken) {
+        return res
+          .status(401)
+          .json({ message: Messages.MISSING_REFRESH_TOKEN });
+      }
+
+      const { accessToken, refreshToken: newRefreshToken } =
+        await this.refreshTokenUseCase.execute(refreshToken);
+      console.log("thre refreshtokent return accesstoken is t :", accessToken);
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.status(200).json({
+        accessToken,
+      });
+    } catch (error) {
+      next(error);
     }
+  };
 
-    const { accessToken, refreshToken: newRefreshToken } =
-      await this.refreshTokenUseCase.execute(refreshToken);
-
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
-    });
-
-    res.status(200).json({
-      accessToken,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-  public googleLogin = async (req: Request, res: Response, next: NextFunction) => {
+  public googleLogin = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { code } = req.body;
-      console.log('this is the code get in bacnded :',code)
-      const { user, accessToken, refreshToken } = await this.googleLoginUseCase.execute(code);
+      console.log("this is the code get in bacnded :", code);
+      const { user, accessToken, refreshToken } =
+        await this.googleLoginUseCase.execute(code);
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -114,28 +126,34 @@ export class AuthController {
     }
   };
 
-  public logout = async (
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction
-  ) => {
+  public logout = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) {
-        res
+      const token = req.cookies.refreshToken;
+      if (!token) {
+        return res
           .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: Messages.UNAUTHORIZED });
-        return;
+          .json({ message: "No refresh token found" });
       }
+
+      const decoded = this.jwt.verifyRefreshToken(token);
+      const userId = decoded.sub;
+
       await this.logoutUseCase.execute(userId);
+
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       });
-      res.status(HttpStatusCode.OK).json({ message: Messages.LOGOUT_SUCCESS });
+
+      return res
+        .status(HttpStatusCode.OK)
+        .json({ message: Messages.LOGOUT_SUCCESS });
     } catch (error) {
-      next(error);
+      console.error("Logout error:", error);
+      return res
+        .status(HttpStatusCode.FORBIDDEN)
+        .json({ message: "Invalid or expired refresh token" });
     }
   };
 
@@ -188,7 +206,7 @@ export class AuthController {
     }
   };
 
-  public resetPassword = async ( 
+  public resetPassword = async (
     req: Request,
     res: Response,
     next: NextFunction

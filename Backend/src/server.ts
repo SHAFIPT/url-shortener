@@ -5,6 +5,7 @@ import app from './app';
 import logger from './utils/logger';
 import { connectMongo } from './config/mongo';
 import { connectRedis } from './config/redis';
+import { createGlobalRateLimiter } from './interfaces/middlewares/globalRateLimiter';
 
 const PORT = process.env.PORT || 5000;
 
@@ -12,6 +13,7 @@ const startServer = async () => {
   try {
     await connectMongo(); 
     await connectRedis();
+    app.use(createGlobalRateLimiter());
     app.listen(PORT, () => {
       logger.info(`🚀 Server running on http://localhost:${PORT}`);
     });

@@ -4,7 +4,7 @@ import { lazy, Suspense } from 'react';
 import ProtectedRoute from './ProtectedRoute';
 import GuestRoute from './GuestRoute';
 
-const LandingPage = lazy(() => import('@/pages/LandingPage'));
+const LandingPage = lazy(() => import('@/pages/LandingPage1'));
 const AuthPage = lazy(() => import('@/pages/Auth'));
 const VerifyOtpPage = lazy(() => import('@/pages/OtpVerification'));
 const DashboardPage = lazy(() => import('@/pages/Dashboard'));

@@ -24,5 +24,16 @@ export enum Messages {
   PASSWORD_UPDATED = "Password updated successfully",
   MISSING_REFRESH_TOKEN = "Refresh token missing",
 
-  INVALID_OR_EXPIRED_TOKEN= "This reset link is invalid or has expired.",
+  INVALID_OR_EXPIRED_TOKEN = "This reset link is invalid or has expired.",
+  DAILY_LIMIT_REACHED= 'Daily URL creation limit reached (100)',
+  RATE_LIMIT_FAILED= 'Rate limit check failed',
+  URL_CREATED= 'Short URL created successfully',
+  INVALID_TOKEN= 'Token is invalid or expired',
+  OTP_VERIFIED = 'OTP verified successfully',
+  UNAUTHORIZED_USER= "User not authenticated.",
+  URL_EXPIRED= "This short URL has expired.",
+  URL_NOT_FOUND = "Short URL not found.",
+  GLOBAL_RATE_LIMIT_EXCEEDED = 'Too many requests. Please try again later.',
+  SHORT_CODE_RETRY_FAILED = "Failed to generate a unique short code after several attempts.",
+  INVALID_INPUT= 'Invalid input provided.',
 }
