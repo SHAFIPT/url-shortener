@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "esnext",
-    "moduleResolution": "nodenext",
+    "module": "nodenext",                   
+    "moduleResolution": "nodenext",       
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
