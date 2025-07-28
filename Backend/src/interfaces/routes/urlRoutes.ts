@@ -13,4 +13,5 @@ urlRoutes.post(
     urlController.createShortUrl
 );
 
-// urlRoutes.get('/:code', urlController.redirectToLongUrl);
+urlRoutes.get("/stats", authenticate, urlController.getDashboardStats); 
+urlRoutes.get("/getUrls", authenticate, urlController.getMyUrls); 

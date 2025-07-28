@@ -50,8 +50,3 @@ export type GetMyUrlsParams = {
   order?: 'asc' | 'desc';
   search?: string;
 };
-
-export type ClicksOverTimeData = {
-  date: string;
-  clicks: number;
-};

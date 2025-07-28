@@ -8,8 +8,8 @@ export const getAccessToken = (): string | undefined => {
 
 export const setAccessToken = (token: string) => {
   Cookies.set(ACCESS_TOKEN_KEY, token, {
-    expires: 1, // 1 day
-    secure: true,
+    expires: 1/24, 
+    secure: process.env.NODE_ENV === 'production', 
     sameSite: 'Strict',
   });
 };

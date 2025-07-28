@@ -5,11 +5,15 @@ import { CreateShortUrlUseCase } from "../../application/usecases/url/CreateShor
 import { Messages } from "../../constants/messages";
 import { GetOriginalUrlUseCase } from "../../application/usecases/url/GetOriginalUrlUseCase";
 import { createShortUrlSchema } from "../validators/urlValidator";
+import { GetDashboardStatsUseCase } from "../../application/usecases/url/GetDashboardStatsUseCase";
+import { GetMyUrlsUseCase } from "../../application/usecases/url/GetMyUrlsUseCase";
 
 export class UrlController {
   constructor(
     private readonly createShortUrlUseCase: CreateShortUrlUseCase,
-    private readonly getOriginalUrlUseCase: GetOriginalUrlUseCase
+    private readonly getOriginalUrlUseCase: GetOriginalUrlUseCase,
+    private readonly getDashboardStatsUseCase: GetDashboardStatsUseCase,
+    private readonly getMyUrlsUseCase: GetMyUrlsUseCase
   ) {}
 
   public createShortUrl = async (
@@ -58,6 +62,61 @@ export class UrlController {
       return res.redirect(longUrl);
     } catch (error) {
       next(error);
+    }
+  };
+  public getDashboardStats = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res
+          .status(HttpStatusCode.UNAUTHORIZED)
+          .json({ message: Messages.UNAUTHORIZED_USER });
+      }
+
+      const stats = await this.getDashboardStatsUseCase.execute({ userId });
+      return res.status(HttpStatusCode.OK).json(stats);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public getMyUrls = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(HttpStatusCode.UNAUTHORIZED).json({
+          message: Messages.UNAUTHORIZED_USER,
+        });
+      }
+
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        order = "desc",
+        search = "",
+      } = req.query;
+
+      const result = await this.getMyUrlsUseCase.execute({
+        userId,
+        page: Number(page),
+        limit: Number(limit),
+        sortBy: String(sortBy),
+        order: String(order) as "asc" | "desc",
+        search: String(search),
+      });
+
+      res.status(HttpStatusCode.OK).json(result);
+    } catch (err) {
+      next(err);
     }
   };
 }

@@ -68,14 +68,13 @@ export class AuthController {
       next(error);
     }
   };
-
+ 
   public refreshToken = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      console.log("the refeshtokent is working................");
       const refreshToken = req.cookies?.refreshToken;
 
       if (!refreshToken) {
@@ -86,7 +85,6 @@ export class AuthController {
 
       const { accessToken, refreshToken: newRefreshToken } =
         await this.refreshTokenUseCase.execute(refreshToken);
-      console.log("thre refreshtokent return accesstoken is t :", accessToken);
       res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -109,7 +107,6 @@ export class AuthController {
   ) => {
     try {
       const { code } = req.body;
-      console.log("this is the code get in bacnded :", code);
       const { user, accessToken, refreshToken } =
         await this.googleLoginUseCase.execute(code);
 

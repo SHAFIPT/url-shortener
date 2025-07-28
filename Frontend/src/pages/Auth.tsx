@@ -59,7 +59,6 @@ const Auth = () => {
     },
     scope: "openid email profile",
     redirect_uri: import.meta.env.VITE_GOOGLE_REDIRECT_URI,
-    // Add these to handle COOP issues
     ux_mode: "popup",
     select_account: true,
   });
@@ -79,7 +78,6 @@ const Auth = () => {
         onSuccess: (res) => {
             console.log('This is the login  response :',res)
             toast.success(AUTH_MESSAGES.LOGIN_SUCCESS);
-            navigate('/');
         },
         onError: (error: AxiosError<ApiError>) => {
             toast.error(error.response?.data?.message || AUTH_MESSAGES.LOGIN_ERROR);

@@ -8,6 +8,8 @@ import { ResendOtpUseCase } from "../application/usecases/auth/ResendOtpUseCase"
 import { ResetPasswordUseCase } from "../application/usecases/auth/ResetPasswordUseCase";
 import { VerifyOtpUseCase } from "../application/usecases/auth/VerifyOtpUseCase";
 import { CreateShortUrlUseCase } from "../application/usecases/url/CreateShortUrlUseCase";
+import { GetDashboardStatsUseCase } from "../application/usecases/url/GetDashboardStatsUseCase";
+import { GetMyUrlsUseCase } from "../application/usecases/url/GetMyUrlsUseCase";
 import { GetOriginalUrlUseCase } from "../application/usecases/url/GetOriginalUrlUseCase";
 import { UrlRepoMongo } from "../infrastructure/db/repositories/UrlRepoMongo";
 import { UserRepository } from "../infrastructure/db/repositories/UserRepository";
@@ -66,9 +68,13 @@ export const rateLimitService = new RedisRateLimitService();
 
 const createShortUrlUseCase = new CreateShortUrlUseCase(urlRepo, shortCodeGen, urlCacheService)
 const getOriginalUrlUseCase = new GetOriginalUrlUseCase(urlRepo, urlCacheService)
+const getDashboardStatsUseCase = new GetDashboardStatsUseCase(urlRepo)
+const getMyUrlsUseCase = new GetMyUrlsUseCase(urlRepo);
 
 export const urlController = new UrlController(
   createShortUrlUseCase,
-  getOriginalUrlUseCase
+  getOriginalUrlUseCase,
+  getDashboardStatsUseCase,
+  getMyUrlsUseCase
 )
 

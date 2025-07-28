@@ -24,8 +24,8 @@ export const authenticate: RequestHandler = (
     };
     next();
   } catch (err) {
-    console.log('This is the errror',err)
-    res.status(403).json({ message: 'Token is invalid or expired' });
+    console.log('This is the error', err);
+    res.status(401).json({ message: 'Token is invalid or expired' });
     return;
   }
 };
